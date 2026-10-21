@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Open Materials Database</title>
+    <link rel="stylesheet" href="{{ page.relbaseurl }}/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <h1>Open <em>Materials Database</em></h1>
+      <p>Material design search tool</p>
+      <p class="live-counts" data-live-counts aria-live="polite"></p>
+    </header>
+    <nav class="tabs" aria-label="Main navigation">
+      <a href="#tab_material" data-tab="tab_material">Materials</a>
+      <a href="#tab_computation" data-tab="tab_computation">Results</a>
+      <span class="spacer"></span>
+      <a href="#tab_help" data-tab="tab_help">Help</a>
+      <a href="#tab_about" data-tab="tab_about">About</a>
+    </nav>
+    <main>{{ content }}</main>
+  </body>
+</html>
