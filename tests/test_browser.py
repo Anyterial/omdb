@@ -7,6 +7,7 @@ import socket
 import sqlite3
 import threading
 import time
+from pathlib import Path
 from urllib.parse import unquote
 
 import pytest
@@ -18,9 +19,10 @@ pytestmark = pytest.mark.browser
 
 
 @pytest.mark.parametrize("live_crysviz", [False, True], ids=["interface", "live-crysviz"])
-def test_materials_results_and_crysviz(dataset, tmp_path, live_crysviz):
+def test_materials_results_and_crysviz(dataset, tmp_path, live_crysviz, monkeypatch):
     """Check live navigation, text-safe rendering and the generated CrysViz payload."""
     playwright = pytest.importorskip("playwright.sync_api")
+    monkeypatch.delenv("OMDB_CRYSVIZ_BASE_URL", raising=False)
     if live_crysviz and os.environ.get("HTTK_TEST_OMDB_CRYSVIZ_LIVE") != "1":
         pytest.skip("set HTTK_TEST_OMDB_CRYSVIZ_LIVE=1 for remote CrysViz and WebGL acceptance")
     with sqlite3.connect(dataset / "catalog.sqlite") as connection:
@@ -77,6 +79,7 @@ def test_materials_results_and_crysviz(dataset, tmp_path, live_crysviz):
                 frame = page.get_by_title("Interactive crystal structure (CrysViz)")
                 frame.wait_for()
                 src = frame.get_attribute("src")
+                assert src.startswith("https://crysviz.org/?widget=1#load-file=")
                 session = json.loads(base64.b64decode(unquote(src.split("|", 1)[1])))
                 assert session["frames"][0]["elements"] == ["Mg"]
                 assert session["frames"][0]["positions"] == [[0, 0, 0]]
@@ -102,6 +105,9 @@ def test_materials_results_and_crysviz(dataset, tmp_path, live_crysviz):
                 page.get_by_role("link", name="Help", exact=True).click()
                 assert page.locator("#tab_help").is_visible()
                 assert not page.locator("[data-material-detail]").is_visible()
+                page.get_by_role("link", name="About", exact=True).click()
+                expected_about = json.loads((Path(__file__).parent / "fixtures" / "legacy-about.json").read_text())
+                assert " ".join(page.locator("#tab_about").inner_text().split()) == expected_about["text"]
                 page.goto(origin + "/?computation=formation&tab=tab_computation#tab_computation")
                 page.locator("[data-result-results] tbody tr").wait_for()
                 assert "VASP" in page.locator("[data-result-results]").inner_text()

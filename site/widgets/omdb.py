@@ -29,27 +29,31 @@ def render(context, **props):
     config_id = escape(f"site-omdb-{context.widget_id}-config", quote=True)
     optimade_info = "/optimade/v1/info"
     config = {
-        "crysviz_base_url": os.environ.get("OMDB_CRYSVIZ_BASE_URL", "https://crysviz.org/index.html"),
+        "crysviz_base_url": os.environ.get("OMDB_CRYSVIZ_BASE_URL", "https://crysviz.org/"),
         "query": dict(context.query),
         "widget_id": context.widget_id,
     }
+    about = (Path(__file__).parents[1] / "templates" / "about.html").read_text(encoding="utf-8")
+    about = about.replace("{{ relbaseurl }}", escape(relative_base, quote=True))
     asset = WidgetAsset("omdb.mjs", Path(__file__).with_name("omdb.mjs").read_bytes(), "text/javascript")
     html = f'''<section class="omdb" data-omdb="1" data-widget-id="{widget_id}" data-config-id="{config_id}">
-  <div class="tab-panel" id="tab_material" data-panel="tab_material">
+  <div class="search-strip tab-panel" id="tab_material" data-panel="tab_material">
     <form class="search-box" data-search="materials">
-      <h2>Search for All Data Related to a Material</h2>
-      <div class="search-row"><input type="text" name="material" aria-label="Material query" /><button type="submit">submit</button></div>
-      <p class="hint">Search material formulas, anonymous formulas, and names by text.</p>
+      <h3>Search for All Data Related to a Material</h3>
+      <input type="text" name="material" aria-label="Material query" />
+      <button type="submit">submit</button>
+      <details class="search-help"><summary>Search help</summary><p>Type part of a formula, anonymous formula, or name. Search uses a simple text match.</p></details>
     </form>
-    <div data-material-results aria-live="polite"></div>
+    <div class="search-results" data-material-results aria-live="polite"></div>
   </div>
-  <div class="tab-panel" id="tab_computation" data-panel="tab_computation" hidden>
+  <div class="search-strip tab-panel" id="tab_computation" data-panel="tab_computation" hidden>
     <form class="search-box" data-search="results">
-      <h2>Search for Results and Projects</h2>
-      <div class="search-row"><input type="text" name="computation" aria-label="Result query" placeholder="e.g. formation" /><button type="submit">submit</button></div>
-      <p class="hint">Search promoted calculations and projects.</p>
+      <h3>Search for Results and Projects</h3>
+      <input type="text" name="computation" aria-label="Result query" placeholder="e.g. formation" />
+      <button type="submit">submit</button>
+      <details class="search-help"><summary>Search help</summary><p>Search result and project descriptions with a simple text match.</p></details>
     </form>
-    <div data-result-results aria-live="polite"></div>
+    <div class="search-results" data-result-results aria-live="polite"></div>
   </div>
   <div class="tab-panel" id="tab_help" data-panel="tab_help" hidden>
     <div class="about-copy">
@@ -62,14 +66,7 @@ def render(context, **props):
     </div>
   </div>
   <div class="tab-panel" id="tab_about" data-panel="tab_about" hidden>
-    <div class="about-copy">
-      <img class="banner" src="{escape(relative_base, quote=True)}/omdb-largebanner.jpg" alt="Open Materials Database" />
-      <h2>About the Open Materials Database</h2>
-      <p><strong>The Open Materials Database is a publicly available, searchable database for information on material properties created by computational materials design research.</strong> Its database-centered high-throughput approach builds on ideas pioneered by G. Ceder, K. Persson, and others as part of the Materials Genome Initiative.</p>
-      <p>The project was led by Rickard Armiento at Theoretical Physics, Linköping University, with colleagues at Linköping University and the QM-RCD lab at the University of Basel. The database was built with the High-Throughput Toolkit (<em>httk</em>).</p>
-      <p>Crystal structures were sourced in large part from the <a href="https://www.crystallography.net/">Crystallography Open Database</a>. The project acknowledged support from the Swedish Research Council and the Linnaeus Environment at Linköping on Nanoscale Functional Materials.</p>
-      <p>For publications using this historical database, cite the relevant data source and computational study associated with the material or result.</p>
-    </div>
+    {about}
   </div>
   <noscript><p class="status">Search and material details require JavaScript. <a href="{optimade_info}">Browse the OPTIMADE API</a>.</p></noscript>
   <div data-material-detail aria-live="polite"></div>

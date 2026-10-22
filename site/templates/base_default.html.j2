@@ -9,8 +9,11 @@
   <body>
     <header class="site-header">
       <h1>Open <em>Materials Database</em></h1>
-      <p>Material design search tool</p>
-      <p class="live-counts" data-live-counts aria-live="polite"></p>
+      <div class="live-counts" data-live-counts aria-live="polite">
+        <div>Present database:</div>
+        <div>Materials: <span data-compound-count>—</span></div>
+        <div>Computations: <span data-calculation-count>—</span></div>
+      </div>
     </header>
     <nav class="tabs" aria-label="Main navigation">
       <a href="#tab_material" data-tab="tab_material">Materials</a>

@@ -305,7 +305,7 @@ async function loadMaterials(container, apiBase, state, onPage) {
       params.delete("offset");
       location.href = `?${params}#tab_material`;
     });
-    container.replaceChildren(node("p", `${result.count ?? data.length} materials found.`), table, pager(Number(result.count) || 0, state.offset, Number(result.limit) || 100, onPage));
+    container.replaceChildren(node("p", `Number of results: ${result.count ?? data.length}`), table, pager(Number(result.count) || 0, state.offset, Number(result.limit) || 100, onPage));
   } catch (error) { setStatus(container, `Could not load materials: ${error.message}`, true); }
 }
 
@@ -316,7 +316,7 @@ async function loadResults(container, apiBase, state, onPage) {
     if (!response.ok) throw new Error(`Results service returned ${response.status}`);
     const result = await response.json();
     const data = Array.isArray(result.data) ? result.data : [];
-    container.replaceChildren(node("p", `${result.count ?? data.length} results found.`), resultsTable(data, state), pager(Number(result.count) || 0, state.offset, Number(result.limit) || 100, onPage));
+    container.replaceChildren(node("p", `Number of results: ${result.count ?? data.length}`), resultsTable(data, state), pager(Number(result.count) || 0, state.offset, Number(result.limit) || 100, onPage));
   } catch (error) { setStatus(container, `Could not load results: ${error.message}`, true); }
 }
 
@@ -358,7 +358,10 @@ function boot(root) {
   if (countText) fetch(`${API_BASE}/stats`).then((response) => {
     if (!response.ok) throw new Error("Statistics unavailable");
     return response.json();
-  }).then((stats) => { countText.textContent = `Present database: Materials: ${stats.compounds ?? "—"} · Computations: ${stats.calculations ?? "—"}`; }).catch(() => { countText.textContent = ""; });
+  }).then((stats) => {
+    countText.querySelector("[data-compound-count]").textContent = stats.compounds ?? "—";
+    countText.querySelector("[data-calculation-count]").textContent = stats.calculations ?? "—";
+  }).catch(() => {});
   activateTab(location.hash.slice(1) || state.tab);
   document.querySelectorAll("[data-tab]").forEach((link) => link.addEventListener("click", () => activateTab(link.dataset.tab)));
   materialForm.addEventListener("submit", (event) => {

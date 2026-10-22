@@ -1,0 +1,29 @@
+{
+  "source": "Archived www-omdb-code/templates/index.page, About panel; verified against https://openmaterialsdb.se/ on 2026-10-22",
+  "text": "About the Open Materials Database Note: the Open Materials Database is currently being filled with relevant data. The Open Materials Database is a publicly available, searchable database for information on the properties of materials created by people who work in computational materials design research. It is an independent implementation inspired by the database-centric high-throughput approach pioneered by G. Ceder, K. Persson, et al., and others. This methodology is the basis of the White House Materials Genome Initiative. We aim to make the Open Materials Database especially strong in the ways researchers can programmatically interact / search / and process the data using the httk programming framework. People and Groups Involved The Open Materials Database initative, with the development of the database, curation of data, and development of the software infrastructure is spear-headed by Rickard Armiento at Theoretical Physics at Linköping University. Other people and groups involved in this effort: Theoretical Physics, Linköping University Rickard Armiento (initative lead) Igor Abrikosov Peter Steneteg Igor Mogyasin Alexander Lindmaa The QM-RCD lab, University of Basel Anatole von Lilienfeld Felix Faber Other Collaborators Torbjörn Björkman, COMP/Department of Applied Physics, Aalto University (author of CIF2Cell, collaborator on interfacing httk with electronic structure codes.) Predrag Lazić, Ruđer Bošković Institute (user, tester) Contributing data If you have own high-quality data that you would like to publish via the Open Materials Database as 'contributed data', please use httk and follow the instructions in the documentation. The High-Throughput Toolkit (httk) The Open Materials Database is built using a the High-Throughput Toolkit (httk). It is a freely available open source framework for preparing and running calculations, analyzing the results, and store them in a global and/or in a personalized database. Httk documentation and downloads are available via a separate website: http://httk.openmaterialsdb.se Contact us Our primary contact point is email to: contactopenmaterialsdb.se Acknowledgements The main part of our computations have been performed at the Swedish National Infrastructure for Computing (SNIC) We are grateful for funding provided for the Open Materials Database and the High-Throughput Toolikt in part by: The Swedish Research Council (VR) Grant No. 621-2011-4249 The Linnaeus Environment at Linköping on Nanoscale Functional Materials (LiLi-NFM) funded by The Swedish Research Council. The current main source of crystal structures for the Open Materials Database is the Crystallography Open Database, we are very grateful for this great resource. This website is kindly hosted by the depatment of Physics, Chemistry and Biology (IFM) at Linköping University, courtesy of the IFM IT team. Related efforts The Open Materials Database is part of a community of a handful of efforts to setup public searchable data repositories for material information. Here follows a list of the more well-known efforts we are aware of: The Materials Project, http://materialsproject.org/, G. Ceder et al. Automatic FLOW for Materials Discovery (AFLOW) Consortium, http://aflowlib.org/, S. Curtarolo et al. Open Quantum Materials Database, http://oqmd.org/, C. Wolverton et al. Automated Interactive Infrastructure and Database for Atomistic simulation (Aiida), http://www.aiida.net/, N. Marzari et al. The Electronic Structure Project, http://materialsgenome.se, M. Klintenberg et al. The Novel Materials Discovery (NoMaD),http://nomad-repository.eu/, M. Scheffler, C. Draxl, et al. (Theoretical / Predicted) Crystallography Open Database, http://www.crystallography.net/, http://www.crystallography.net/tcod, http://www.crystallography.net/pcod, S. Grazulis, A. Le Bail, et al.",
+  "links": [
+    "https://www.whitehouse.gov/mgi",
+    "http://httk.openmaterialsdb.se/",
+    "https://www.ifm.liu.se/theomod/theophys/",
+    "http://www.chemie.unibas.ch/~anatole/",
+    "http://comp.aalto.fi/",
+    "http://physics.aalto.fi/",
+    "http://www.aalto.fi/en/",
+    "http://sourceforge.net/projects/cif2cell/",
+    "http://www.irb.hr/eng",
+    "http://httk.openmaterialsdb.se/users_guide.html#if-you-want-how-to-submit-your-results-to-a-public-database",
+    "http://httk.openmaterialsdb.se",
+    "http://www.crystallography.net/",
+    "http://www.ifm.liu.se/",
+    "http://www.liu.se/",
+    "http://materialsproject.org/",
+    "http://aflowlib.org/",
+    "http://oqmd.org/",
+    "http://www.aiida.net/",
+    "http://materialsgenome.se",
+    "http://nomad-repository.eu/",
+    "http://www.crystallography.net/",
+    "http://www.crystallography.net/tcod",
+    "http://www.crystallography.net/pcod"
+  ]
+}

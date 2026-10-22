@@ -38,9 +38,9 @@ test("CrysViz receives fractional positions derived from Cartesian coordinates",
   });
   assert.deepEqual(payload.frames[0].positions, [[0.5, 0.5, 0.5]]);
   assert.deepEqual(payload.frames[0].elements, ["Fe"]);
-  assert.match(crysvizUrl("https://crysviz.org/index.html", payload), /^https:\/\/crysviz\.org\/index\.html\?widget=1#load-file=/);
-  const configuredUrl = crysvizUrl("https://crysviz.org/index.html#old-secret", payload);
-  assert.match(configuredUrl, /^https:\/\/crysviz\.org\/index\.html\?widget=1#load-file=/);
+  assert.match(crysvizUrl("https://crysviz.org/", payload), /^https:\/\/crysviz\.org\/\?widget=1#load-file=/);
+  const configuredUrl = crysvizUrl("https://crysviz.org/#old-secret", payload);
+  assert.match(configuredUrl, /^https:\/\/crysviz\.org\/\?widget=1#load-file=/);
   assert.equal(configuredUrl.includes("old-secret"), false);
   assert.throws(() => crysvizUrl("javascript:alert(1)", payload), /HTTP or HTTPS/);
 });
