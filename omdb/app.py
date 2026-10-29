@@ -81,11 +81,19 @@ def _pattern(query):
     return "%" + query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
 
 
-def create_app(data_dir: str | Path | None = None, *, site_dir: str | Path | None = None) -> Starlette:
+def create_app(
+    data_dir: str | Path | None = None,
+    *,
+    site_dir: str | Path | None = None,
+    public_base_url: str | None = None,
+) -> Starlette:
     """Open a built OMDB dataset and compose its read-only services.
 
     :param data_dir: Directory produced by the offline importer.
     :param site_dir: Site source directory, defaulting to this checkout's site.
+    :param public_base_url: Public origin the application is served at, e.g.
+        ``https://omdb.example.org/``; OPTIMADE links then use it instead of
+        deriving them from each request.
     :return: Application owning its opened database and web engine.
     :raises FileNotFoundError: If a required built database is missing.
     """
@@ -113,6 +121,7 @@ def create_app(data_dir: str | Path | None = None, *, site_dir: str | Path | Non
                 },
                 page_limit_max=100,
             ),
+            baseurl=None if public_base_url is None else public_base_url.rstrip("/") + "/optimade",
         )
         web = create_web_app(site_dir or SITE)
         web.add_middleware(_LegacyEntry)

@@ -98,8 +98,9 @@ For deployment, use the ASGI factory `omdb.app:create_app` with an ASGI server,
 for example `uvicorn omdb.app:create_app --factory --host 127.0.0.1 --port 8080`,
 and set `OMDB_DATA_DIR` to an absolute directory. A reverse proxy can provide TLS;
 mount the combined application at the origin root. OPTIMADE constructs its public
-links from the request, so configure trusted proxy headers in the ASGI server for
-the actual deployment. No hosted service is published by this repository.
+links from the request, so either configure trusted proxy headers in the ASGI server
+or call `create_app(data_dir, public_base_url="https://omdb.example.org/")` from a
+small ASGI module to fix them. No hosted service is published by this repository.
 
 Verification:
 

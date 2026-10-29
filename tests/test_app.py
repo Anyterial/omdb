@@ -115,3 +115,9 @@ def test_application_closes_database(dataset):
     with TestClient(app) as client:
         assert client.get("/api/materials").status_code == 200
     assert closed == [True]
+
+
+def test_public_base_url_sets_optimade_links(dataset):
+    with TestClient(create_app(dataset, public_base_url="https://omdb.example.org/")) as client:
+        response = client.get("/optimade/v1/structures", params={"page_limit": 1}).json()
+    assert response["links"]["next"].startswith("https://omdb.example.org/optimade/v1/structures?")
