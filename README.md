@@ -100,7 +100,12 @@ and set `OMDB_DATA_DIR` to an absolute directory. A reverse proxy can provide TL
 mount the combined application at the origin root. OPTIMADE constructs its public
 links from the request, so either configure trusted proxy headers in the ASGI server
 or call `create_app(data_dir, public_base_url="https://omdb.example.org/")` from a
-small ASGI module to fix them. No hosted service is published by this repository.
+small ASGI module to fix them. Add
+`optimade_base_url="https://optimade.omdb.example.org/"` to serve OPTIMADE at the
+root of its own host as well: requests with that `Host` header reach OPTIMADE, and
+its links name that host. The reverse proxy must forward the original `Host` header
+without rewriting the path. The website keeps using its same-origin `/optimade`
+mount. No hosted service is published by this repository.
 
 Verification:
 

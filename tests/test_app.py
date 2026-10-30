@@ -121,3 +121,22 @@ def test_public_base_url_sets_optimade_links(dataset):
     with TestClient(create_app(dataset, public_base_url="https://omdb.example.org/")) as client:
         response = client.get("/optimade/v1/structures", params={"page_limit": 1}).json()
     assert response["links"]["next"].startswith("https://omdb.example.org/optimade/v1/structures?")
+
+
+def test_optimade_base_url_serves_dedicated_host(dataset):
+    app = create_app(
+        dataset, public_base_url="https://omdb.example.org/", optimade_base_url="https://OPTIMADE.omdb.example.org/"
+    )
+    with TestClient(app, base_url="https://optimade.omdb.example.org") as client:
+        assert client.get("/v1/info").status_code == 200
+        response = client.get("/v1/structures", params={"page_limit": 1}).json()
+        assert response["links"]["next"].startswith("https://optimade.omdb.example.org/v1/structures?")
+    with TestClient(app, base_url="https://omdb.example.org") as client:
+        assert client.get("/optimade/v1/info").status_code == 200
+        assert client.get("/api/stats").status_code == 200
+        assert client.get("/v1/info").status_code == 404
+
+
+def test_optimade_base_url_must_be_origin(dataset):
+    with pytest.raises(ValueError, match="optimade_base_url"):
+        create_app(dataset, optimade_base_url="https://optimade.omdb.example.org/v1")

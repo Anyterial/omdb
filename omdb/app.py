@@ -5,6 +5,7 @@ import os
 import tempfile
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from httk.atomistic import StructureEntry, UnitcellStructureView
 from httk.core import save
@@ -54,6 +55,34 @@ class _LegacyEntry:
         await self.app(scope, receive, send)
 
 
+class _OptimadeHost:
+    """Serve the ``/optimade`` mount at the root of a dedicated host."""
+
+    def __init__(self, app, host):
+        self.app = app
+        self.host = host
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and dict(scope["headers"]).get(b"host", b"").decode("latin-1").lower() == self.host:
+            path = "/optimade" + scope["path"]
+            scope = dict(scope, path=path, raw_path=path.encode())
+        await self.app(scope, receive, send)
+
+
+def _origin(url):
+    parts = urlsplit(url)
+    if (
+        parts.scheme not in {"http", "https"}
+        or not parts.hostname
+        or parts.path not in {"", "/"}
+        or "@" in parts.netloc
+        or parts.query
+        or parts.fragment
+    ):
+        raise ValueError("optimade_base_url must be an HTTP(S) origin without a path")
+    return f"{parts.scheme}://{parts.netloc.lower()}"
+
+
 def _decoded(row):
     return {key: json.loads(value) if key in _JSON_FIELDS else value for key, value in dict(row).items()}
 
@@ -86,6 +115,7 @@ def create_app(
     *,
     site_dir: str | Path | None = None,
     public_base_url: str | None = None,
+    optimade_base_url: str | None = None,
 ) -> Starlette:
     """Open a built OMDB dataset and compose its read-only services.
 
@@ -94,9 +124,20 @@ def create_app(
     :param public_base_url: Public origin the application is served at, e.g.
         ``https://omdb.example.org/``; OPTIMADE links then use it instead of
         deriving them from each request.
+    :param optimade_base_url: Separate public origin for OPTIMADE, e.g.
+        ``https://optimade.omdb.example.org/``. Requests whose ``Host`` header
+        names it reach OPTIMADE at the root, and its links use it. The website
+        keeps using its own ``/optimade`` mount.
     :return: Application owning its opened database and web engine.
     :raises FileNotFoundError: If a required built database is missing.
+    :raises ValueError: If ``optimade_base_url`` is not an HTTP(S) origin.
     """
+    if optimade_base_url is not None:
+        optimade_origin = _origin(optimade_base_url)
+    elif public_base_url is not None:
+        optimade_origin = public_base_url.rstrip("/") + "/optimade"
+    else:
+        optimade_origin = None
     directory = Path(data_dir or os.environ.get("OMDB_DATA_DIR", DEFAULT_DATA)).resolve()
     for filename in ("catalog.sqlite", "structures.sqlite", "manifest.json"):
         if not (directory / filename).is_file():
@@ -121,7 +162,7 @@ def create_app(
                 },
                 page_limit_max=100,
             ),
-            baseurl=None if public_base_url is None else public_base_url.rstrip("/") + "/optimade",
+            baseurl=optimade_origin,
         )
         web = create_web_app(site_dir or SITE)
         web.add_middleware(_LegacyEntry)
@@ -262,6 +303,8 @@ def create_app(
         app = compose_asgi_apps(
             [ASGIAppMount("/api", api), ASGIAppMount("/optimade", optimade)], root=ASGIAppMount("/", web)
         )
+        if optimade_base_url is not None:
+            app.add_middleware(_OptimadeHost, host=urlsplit(optimade_origin).netloc)
         app.state.database = database
         app.state.store = store
         return app
