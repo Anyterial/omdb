@@ -32,13 +32,15 @@ export function materialErrorMessage(status) {
   return status === 404 ? "Material not found." : "Could not load material details.";
 }
 
-export function crysvizUrl(base, payload) {
+// A session payload object, or a file's text (e.g. a CIF with partial occupancies) named by filename.
+export function crysvizUrl(base, payload, filename = "structure.crysviz") {
   const url = new URL(base);
   if (url.protocol !== "https:" && url.protocol !== "http:") throw new TypeError("CrysViz URL must use HTTP or HTTPS");
   url.hash = "";
   url.searchParams.set("widget", "1");
-  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-  return `${url.href}#load-file=${encodeURIComponent("structure.crysviz")}|${encodeURIComponent(encoded)}`;
+  const text = typeof payload === "string" ? payload : JSON.stringify(payload);
+  const encoded = btoa(unescape(encodeURIComponent(text)));
+  return `${url.href}#load-file=${encodeURIComponent(filename)}|${encodeURIComponent(encoded)}`;
 }
 
 const vec3 = (value) => Array.isArray(value) && value.length === 3 && value.every((n) => typeof n === "number" && Number.isFinite(n));
@@ -225,13 +227,20 @@ function renderDetail(container, material, structures, crysvizBase) {
         const resource = payload.data || payload;
         const attributes = resource.attributes || resource;
         const session = crysvizPayload(attributes);
-        if (!session) throw new Error("Structure data is incomplete for the viewer.");
+        if (session) return crysvizUrl(crysvizBase, session);
+        // The session format has no occupancies; CrysViz reads disordered sites from CIF.
+        if (selected.id == null) throw new Error("Structure data is incomplete for the viewer.");
+        return fetch(`/api/structures/${encodeURIComponent(selected.id)}/structure.cif`)
+          .then((response) => { if (!response.ok) throw new Error(`Structure service returned ${response.status}`); return response.text(); })
+          .then((cif) => crysvizUrl(crysvizBase, cif, "structure.cif"));
+      })
+      .then((src) => {
         const iframe = node("iframe", "", "structure-frame");
         iframe.title = "Interactive crystal structure (CrysViz)";
         iframe.loading = "lazy";
         iframe.referrerPolicy = "no-referrer";
         iframe.setAttribute("sandbox", "allow-scripts allow-popups allow-popups-to-escape-sandbox");
-        iframe.src = crysvizUrl(crysvizBase, session);
+        iframe.src = src;
         viewer.replaceChildren(iframe);
       })
       .catch(() => setStatus(viewer, "Interactive structure viewer unavailable. Use the structure downloads instead.", true));

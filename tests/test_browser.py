@@ -7,11 +7,15 @@ import socket
 import sqlite3
 import threading
 import time
+from dataclasses import replace
 from pathlib import Path
 from urllib.parse import unquote
 
 import pytest
 import uvicorn
+from httk.atomistic import Cell, Sites, Species, StructureEntry, UnitcellStructure
+from httk.atomistic.storage.records import UnitcellStructureRecord
+from httk.store import Backend, SqlStore
 
 from omdb.app import create_app
 
@@ -32,6 +36,25 @@ def test_materials_results_and_crysviz(dataset, tmp_path, live_crysviz, monkeypa
                 'periodicity,tags,"references",structures,default_structure_id FROM materials WHERE id=1',
                 (identifier,),
             )
+        # A mixed Na/Bi site that the CrysViz session format cannot represent.
+        connection.execute(
+            "INSERT INTO materials SELECT 200,'BiNaO2',formula,?,spacegroup_number,number_of_elements,"
+            'periodicity,tags,"references",?,200 FROM materials WHERE id=1',
+            (json.dumps(["Sodium bismuth oxide"]), json.dumps([{"id": 200, "entry_id": "omdb.structures-1-200"}])),
+        )
+        connection.execute("INSERT INTO geometries VALUES (200,'omdb.structures-1-200','{}')")
+    mixed = Species(name="NaBi", chemical_symbols=("Na", "Bi"), concentration=(0.5, 0.5))
+    oxygen = Species(name="O", chemical_symbols=("O",), concentration=(1.0,))
+    disordered = UnitcellStructure(
+        Cell([[4, 0, 0], [0, 4, 0], [0, 0, 4]]),
+        Sites([[0, 0, 0], [0.5, 0.5, 0.5]]),
+        species_at_sites=["NaBi", "O"],
+        species=[mixed, oxygen],
+    )
+    database = Backend.sqlite(dataset / "structures.sqlite")
+    store = SqlStore(database, entry_records={StructureEntry: UnitcellStructureRecord})
+    store.save(replace(UnitcellStructureRecord.from_structure(disordered), id="omdb.structures-1-200"))
+    database.dispose()
     app = create_app(dataset)
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
@@ -102,6 +125,25 @@ def test_materials_results_and_crysviz(dataset, tmp_path, live_crysviz, monkeypa
                     == "/api/structures/1/POSCAR"
                 )
                 page.screenshot(path=str(tmp_path / "omdb-detail.png"), full_page=True)
+                page.goto(origin + "/?compound_cid=200")
+                frame = page.get_by_title("Interactive crystal structure (CrysViz)")
+                frame.wait_for()
+                filename, content = frame.get_attribute("src").split("#load-file=", 1)[1].split("|", 1)
+                assert unquote(filename) == "structure.cif"
+                cif = base64.b64decode(unquote(content)).decode()
+                assert "_atom_site_occupancy" in cif and " Bi " in cif
+                if live_crysviz:
+                    viewer = frame.element_handle().content_frame()
+                    viewer.wait_for_function(
+                        """async () => {
+                      const {fileBrowser} = await import(new URL('./state/store.js', location.href).href);
+                      const atoms = fileBrowser.selectedStructure?.atoms ?? [];
+                      return atoms.some((atom) => atom.species?.length === 2
+                        && atom.species.every((entry) => Math.abs(entry.occupancy - 0.5) < 1e-9));
+                    }""",
+                        timeout=30000,
+                    )
+                page.goto(origin + "/?compound_cid=1")
                 page.get_by_role("link", name="Help", exact=True).click()
                 assert page.locator("#tab_help").is_visible()
                 assert not page.locator("[data-material-detail]").is_visible()

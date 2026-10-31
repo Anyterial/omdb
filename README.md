@@ -77,9 +77,10 @@ The website catalog and native structures are served read-only. Environment
 variable `OMDB_DATA_DIR` selects a built directory when no CLI `--database` is
 supplied. `OMDB_CRYSVIZ_BASE_URL` overrides the default CrysViz iframe host at
 `https://crysviz.org/`, for example for a separately deployed CrysViz
-installation. The viewer uses the structure's actual lattice and sites. Mixed or
-partially occupied sites remain available through CIF and OPTIMADE; they are
-not replaced with an invented ordered geometry for visualization.
+installation. The viewer uses the structure's actual lattice and sites. Structures
+with mixed or partially occupied sites are passed to CrysViz as the CIF download,
+which carries the occupancies; they are not replaced with an invented ordered
+geometry.
 
 OPTIMADE discovery and examples:
 

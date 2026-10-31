@@ -45,6 +45,14 @@ test("CrysViz receives fractional positions derived from Cartesian coordinates",
   assert.throws(() => crysvizUrl("javascript:alert(1)", payload), /HTTP or HTTPS/);
 });
 
+test("CrysViz receives CIF text under its filename", () => {
+  const cif = "data_x\n_atom_site_label 'Na\u00e9'\n";
+  const url = crysvizUrl("https://crysviz.org/", cif, "structure.cif");
+  const [name, content] = url.split("#load-file=")[1].split("|");
+  assert.equal(decodeURIComponent(name), "structure.cif");
+  assert.equal(decodeURIComponent(escape(atob(decodeURIComponent(content)))), cif);
+});
+
 test("CrysViz rejects disordered, partially occupied, and vacancy species", () => {
   const base = {
     lattice_vectors: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
